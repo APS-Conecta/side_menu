@@ -41,7 +41,9 @@ packs only.
 AGPL-3.0-or-later, as upstream: see [`LICENSE`](LICENSE). Custom menu is [Simon Vieille's
 work][deblan]; its documentation, issue tracker and translations remain at [his
 site][docs] and on [translate.codeberg.org][weblate]. This repo keeps his attribution in
-`appinfo/info.xml` and his changelog in [`CHANGELOG.md`](CHANGELOG.md).
+`appinfo/info.xml`, his changelog in [`CHANGELOG.md`](CHANGELOG.md), and his own readme,
+byte for byte, in [`docs/upstream-README.md`](docs/upstream-README.md) — the tarball's
+copy, carried rather than replaced.
 
 [deblan]: https://www.deblan.fr/
 [gitnet]: https://gitnet.fr/deblan/side_menu
