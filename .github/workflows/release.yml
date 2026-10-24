@@ -1,0 +1,37 @@
+# The app's release: pack on every pull request, sign and publish on a v* tag.
+#
+# The work lives in the org's shared workflow (APS-Conecta/.github), pinned by commit SHA, so
+# the signing and packing rules are written once for every app. This is the org's one
+# `shipped-bundle` caller: upstream is unreachable and the repo carries no build manifest, so
+# the js/ bundle ships as committed bytes, the build is a no-op, and the packer accepts the
+# committed bundle for this caller alone (never beside a package.json). A v* tag must equal
+# v + the version in appinfo/info.xml; inside this repo's `release` environment (the app key's
+# only home, with the owner as required reviewer) the workflow signs SHA256SUMS with the app
+# key, proves it against the suite's apps.pub, and publishes exactly four assets: side_menu.tar.gz,
+# info.xml, SHA256SUMS and SHA256SUMS.minisig.
+#
+# What lands in the tarball is governed by the packer's default exclude list (this repo ships
+# no .nextcloudignore): runtime files in, development trees out — src/, screenshots/ and every
+# dotfile at the root stay out of the release.
+name: Release
+
+on:
+  pull_request:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    uses: APS-Conecta/.github/.github/workflows/app-release.yml@6fa99e34f7cf85b5b21c5d3c2c3efc8d53aa768a # 2026-10-24
+    permissions:
+      contents: write
+    with:
+      app-id: side_menu
+      build: "true"
+      shipped-bundle: true
+    secrets:
+      APP_SIGNING_KEY: ${{ secrets.APP_SIGNING_KEY }}
+      APP_SIGNING_KEY_PASSWORD: ${{ secrets.APP_SIGNING_KEY_PASSWORD }}
