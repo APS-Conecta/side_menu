@@ -75,7 +75,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 </template>
 
 <script setup>
-import { ref, useTemplateRef, onMounted, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useNavStore } from '../store/nav.js'
 import { useConfigStore } from '../store/config.js'
 import { getActiveAppId } from '../lib/app.js'
@@ -105,6 +105,7 @@ const search = ref('')
 const openerHover = ref(false)
 const menu = useTemplateRef('menu')
 const isTouchDevice = window.matchMedia('(pointer: coarse)').matches
+let onMouseLeave = null
 
 watch(
   () => open,
@@ -126,7 +127,14 @@ onMounted(async () => {
   activeApp.value = getActiveAppId()
 
   if (openerHover.value) {
-    menu.value.addEventListener('mouseleave', () => emit('close'))
+    onMouseLeave = () => emit('close')
+    menu.value.addEventListener('mouseleave', onMouseLeave)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (menu.value && onMouseLeave !== null) {
+    menu.value.removeEventListener('mouseleave', onMouseLeave)
   }
 })
 </script>

@@ -44,7 +44,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useConfigStore } from '../store/config.js'
 import { useNavStore } from '../store/nav.js'
 import { createElement } from '../lib/dom.js'
@@ -63,6 +63,7 @@ const hasPageLoader = ref(false)
 const isOpen = ref(false)
 const hasApps = ref(false)
 const openerHover = ref(false)
+let opener = null
 
 const toggleMenu = (value) => {
   isOpen.value = value
@@ -74,6 +75,17 @@ const openMenu = () => {
 
 const closeMenu = () => {
   toggleMenu(false)
+}
+
+const openMenuHandler = () => toggleMenu(true)
+
+const keydownHandler = (e) => {
+  const key = e.key || e.keyCode
+
+  if ((key === 'o' || key === 79) && e.ctrlKey === true) {
+    e.preventDefault()
+    toggleMenu(!isOpen.value)
+  }
 }
 
 const createOpener = () => {
@@ -88,9 +100,9 @@ const createOpener = () => {
     nextcloud.appendChild(logo)
   }
 
-  const opener = createElement('button', {
+  opener = createElement('button', {
     class: 'cm-opener',
-    'arial-label': t('side_menu', 'Toggle the menu'),
+    'aria-label': t('side_menu', 'Toggle the menu'),
     html: `<span>${t('side_menu', 'Toggle the menu')}</span>`,
   })
 
@@ -100,10 +112,10 @@ const createOpener = () => {
     nextcloud.parentNode.insertBefore(opener, nextcloud.nextSibling)
   }
 
-  opener.addEventListener('click', () => toggleMenu(true), true)
+  opener.addEventListener('click', openMenuHandler, true)
 
   if (openerHover.value) {
-    opener.addEventListener('mouseenter', () => toggleMenu(true), true)
+    opener.addEventListener('mouseenter', openMenuHandler, true)
   }
 }
 
@@ -127,13 +139,17 @@ onMounted(async () => {
     createOpener()
   }
 
-  window.document.addEventListener('keydown', (e) => {
-    const key = e.key || e.keyCode
+  window.document.addEventListener('keydown', keydownHandler)
+})
 
-    if ((key === 'o' || key === 79) && e.ctrlKey === true) {
-      e.preventDefault()
-      toggleMenu(!isOpen.value)
-    }
-  })
+onBeforeUnmount(() => {
+  window.document.removeEventListener('keydown', keydownHandler)
+
+  if (opener !== null) {
+    opener.removeEventListener('click', openMenuHandler, true)
+    opener.removeEventListener('mouseenter', openMenuHandler, true)
+    opener.remove()
+    opener = null
+  }
 })
 </script>

@@ -98,7 +98,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useConfigStore } from '../store/config.js'
 import { useNavStore } from '../store/nav.js'
 import { NcActions, NcActionLink } from '@nextcloud/vue'
@@ -115,13 +115,14 @@ const appsOrder = ref([])
 const mainAppList = ref([])
 const popoverAppList = ref([])
 const activeApp = ref(null)
-let resizeTimeout = null
+let resizeRaf = null
 
 const setApps = (value) => {
   value.forEach((app) => {
     Array.from(topMenuApps.value).forEach((id) => {
       if (app.id === id) {
-        app.order = appsOrder.value.findIndex((element) => element === app.id) || null
+        const orderIndex = appsOrder.value.findIndex((element) => element === app.id)
+        app.order = orderIndex === -1 ? null : orderIndex
         appList.value.push(app)
       }
     })
@@ -136,14 +137,13 @@ const appLimit = () => {
   const unifiedSearch = document.querySelector('#header .unified-search-input')
   const body = document.querySelector('body')
 
-  let totalWidth = body.offsetWidth
   let otherElementsWidth = headerEnd ? headerEnd.offsetWidth : 0
 
-  if (unifiedSearch && headerEnd.offsetWidth < unifiedSearch.offsetWidth) {
+  if (unifiedSearch && headerEnd && headerEnd.offsetWidth < unifiedSearch.offsetWidth) {
     otherElementsWidth += unifiedSearch.offsetWidth
   }
 
-  let maxWidth = body.offsetWidth - otherElementsWidth
+  let maxWidth = (body?.offsetWidth ?? 0) - otherElementsWidth
 
   if (headerStart) {
     Array.from(headerStart.children).forEach((child) => {
@@ -154,6 +154,17 @@ const appLimit = () => {
   }
 
   return Math.max(0, Math.floor(maxWidth / 60))
+}
+
+const onWindowResize = () => {
+  if (resizeRaf !== null) {
+    cancelAnimationFrame(resizeRaf)
+  }
+
+  resizeRaf = requestAnimationFrame(() => {
+    computeLists()
+    resizeRaf = null
+  })
 }
 
 const makeStyle = (app) => {
@@ -181,8 +192,17 @@ onMounted(async () => {
   ready.value = true
 
   setApps(await navStore.getCoreApps())
+  window.addEventListener('resize', onWindowResize)
+  computeLists()
+})
 
-  window.setInterval(computeLists, 100)
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onWindowResize)
+
+  if (resizeRaf !== null) {
+    cancelAnimationFrame(resizeRaf)
+    resizeRaf = null
+  }
 })
 </script>
 

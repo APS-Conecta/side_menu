@@ -17,7 +17,7 @@
 
 import { defineStore } from 'pinia'
 import axios from '@nextcloud/axios'
-import { generateUrl, generateOcsUrl } from '@nextcloud/router'
+import { generateUrl } from '@nextcloud/router'
 
 export const useNavStore = defineStore('nav', () => {
   let categories = null
@@ -40,8 +40,8 @@ export const useNavStore = defineStore('nav', () => {
   }
 
   async function getCoreApps() {
-    if (coreApps == null) {
-      coreApps = await await axios.get(generateUrl('/apps/side_menu/core/apps')).then((response) => response.data.items)
+    if (coreApps === null) {
+      coreApps = await axios.get(generateUrl('/apps/side_menu/core/apps')).then((response) => response.data.items)
     }
 
     return coreApps

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * @license GNU AGPL version 3 or any later version
  *
@@ -38,6 +40,7 @@ class AppController extends Controller
         protected AppRepository $appRepository,
         protected IURLGenerator $urlGenerator,
         protected ConfigProxy $config,
+        protected IUserSession $userSession,
     ) {
         parent::__construct($appName, $request);
     }
@@ -47,7 +50,12 @@ class AppController extends Controller
     #[FrontpageRoute(verb: 'GET', url: '/')]
     public function index(): RedirectResponse
     {
-        $user = \OC::$server[IUserSession::class]->getUser();
+        $user = $this->userSession->getUser();
+
+        if ($user === null) {
+            return $this->redirectToApp('files');
+        }
+
         $topMenuApps = $this->config->getAppValueArray('top-menu-apps', '[]');
         $hiddenApps = $this->config->getAppValueArray('big-menu-hidden-apps', '[]');
         $isForced = $this->config->getAppValueBool('force', '0');
@@ -59,8 +67,8 @@ class AppController extends Controller
         }
 
         foreach ($apps as $app) {
-            $inTopMenuApps = in_array($app['id'], $topMenuApps);
-            $inHiddenApps = in_array($app['id'], $hiddenApps);
+            $inTopMenuApps = in_array($app['id'], $topMenuApps, true);
+            $inHiddenApps = in_array($app['id'], $hiddenApps, true);
 
             if (!$inTopMenuApps && $inHiddenApps) {
                 continue;

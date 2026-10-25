@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OCA\SideMenu\Service;
 
 use OC\User\User;
@@ -120,14 +122,14 @@ class AppRepository
         }
 
         usort($apps, function ($a, $b) use ($orders) {
-            $ak = array_keys($orders, $a['id'])[0] ?? null;
-            $bk = array_keys($orders, $b['id'])[0] ?? null;
+            $ak = array_search($a['id'], $orders, true);
+            $bk = array_search($b['id'], $orders, true);
 
-            if (null === $ak || null === $bk) {
-                return ($a['name'] < $b['name']) ? -1 : 1;
+            if ($ak === false || $bk === false) {
+                return strcmp($a['name'], $b['name']);
             }
 
-            return $ak < $bk ? -1 : 1;
+            return $ak <=> $bk;
         });
 
         return $apps;

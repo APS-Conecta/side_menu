@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * @license GNU AGPL version 3 or any later version
  *
@@ -19,7 +21,6 @@
 
 namespace OCA\SideMenu\Controller;
 
-use OC\URLGenerator;
 use OCA\SideMenu\Service\AppRepository;
 use OCA\SideMenu\Service\CategoryRepository;
 use OCA\SideMenu\Service\ConfigProxy;
@@ -41,7 +42,7 @@ class NavController extends Controller
         protected ConfigProxy $config,
         protected AppRepository $appRepository,
         protected CategoryRepository $categoryRepository,
-        protected URLGenerator $router,
+        protected IUserSession $userSession,
         protected IFactory $l10nFactory,
     ) {
         parent::__construct($appName, $request);
@@ -53,7 +54,7 @@ class NavController extends Controller
     #[FrontpageRoute(verb: 'GET', url: '/nav/items')]
     public function items(): JSONResponse
     {
-        $user = \OC::$server[IUserSession::class]->getUser();
+        $user = $this->userSession->getUser();
         $items = [];
 
         if (!$user) {
@@ -82,9 +83,9 @@ class NavController extends Controller
         }
 
         foreach ($apps as $app) {
-            $inTopMenuApps = in_array($app['id'], $topMenuApps);
-            $inTopSideMenuApps = in_array($app['id'], $topSideMenuApps);
-            $inHiddenApps = in_array($app['id'], $hiddenApps);
+            $inTopMenuApps = in_array($app['id'], $topMenuApps, true);
+            $inTopSideMenuApps = in_array($app['id'], $topSideMenuApps, true);
+            $inHiddenApps = in_array($app['id'], $hiddenApps, true);
 
             if (($inTopMenuApps && !$inTopSideMenuApps) || $inHiddenApps) {
                 continue;
