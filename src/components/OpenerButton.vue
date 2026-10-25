@@ -17,7 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 <template>
   <button
     class="cm-opener"
-    :arial-label="label"
+    :aria-label="t('side_menu', 'Toggle the menu')"
     @click="$emit('click')"
   >
     <span>{{ t('side_menu', 'Toggle the menu') }}</span>

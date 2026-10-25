@@ -16,6 +16,10 @@
  */
 
 const focusActiveApp = (menu) => {
+  if (!menu) {
+    return
+  }
+
   window.setTimeout(() => {
     const a = menu.querySelector('.side-menu-app.active a') || menu.querySelector('.side-menu-app a')
 

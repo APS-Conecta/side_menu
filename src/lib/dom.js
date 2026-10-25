@@ -15,21 +15,27 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-const waitContainer = async (selector) => {
-  return new Promise((resolve) => {
+const waitContainer = async (selector, { timeoutMs = 10000, intervalMs = 50 } = {}) => {
+  return new Promise((resolve, reject) => {
+    const startTime = Date.now()
+
     const execute = () => {
       const container = document.querySelector(selector)
 
       if (container) {
         resolve(container)
-      } else {
-        setTimeout(() => {
-          execute(selector)
-        }, 50)
+        return
       }
+
+      if (Date.now() - startTime >= timeoutMs) {
+        reject(new Error(`Container not found for selector "${selector}"`))
+        return
+      }
+
+      setTimeout(execute, intervalMs)
     }
 
-    execute(selector)
+    execute()
   })
 }
 

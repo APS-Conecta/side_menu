@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 
 const width = ref(0)
 const createStyle = (size) => {
@@ -33,17 +33,44 @@ const createStyle = (size) => {
   }
 }
 let interval = null
+let resetTimeout = null
+
+const clearTimers = () => {
+  if (interval !== null) {
+    clearInterval(interval)
+    interval = null
+  }
+
+  if (resetTimeout !== null) {
+    clearTimeout(resetTimeout)
+    resetTimeout = null
+  }
+}
+
+const beforeUnloadHandler = () => {
+  if (interval !== null) {
+    return
+  }
+
+  interval = setInterval(() => {
+    width.value = Math.min(width.value + 0.2, 100)
+
+    if (width.value === 100) {
+      clearTimers()
+      resetTimeout = window.setTimeout(() => {
+        width.value = 0
+        resetTimeout = null
+      }, 2000)
+    }
+  }, 25)
+}
 
 onMounted(() => {
-  window.addEventListener('beforeunload', () => {
-    interval = setInterval(() => {
-      width.value = Math.min(width.value + 0.2, 100)
+  window.addEventListener('beforeunload', beforeUnloadHandler)
+})
 
-      if (width.value === 100) {
-        clearInterval(interval)
-        window.setTimeout(() => (width.value = 0), 2000)
-      }
-    }, 25)
-  })
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', beforeUnloadHandler)
+  clearTimers()
 })
 </script>

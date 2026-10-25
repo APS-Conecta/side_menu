@@ -69,7 +69,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 </template>
 
 <script setup>
-import { ref, useTemplateRef, onMounted, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useConfigStore } from '../store/config.js'
 import { useNavStore } from '../store/nav.js'
 import { focusActiveApp } from '../lib/menu.js'
@@ -107,6 +107,8 @@ const search = ref('')
 const apps = ref([])
 const menu = useTemplateRef('menu')
 const isTouchDevice = window.matchMedia('(pointer: coarse)').matches
+let onMouseEnter = null
+let onMouseLeave = null
 
 watch(apps, (val) => {
   document.querySelector('html').classList.toggle('cm-always-displayed', alwaysDisplayed.value && val.length)
@@ -164,13 +166,32 @@ onMounted(async () => {
 
   apps.value = getFiltredAndSortedApps(await navStore.getApps(), config['apps-order'], config['top-menu-apps'], config['top-side-menu-apps'])
 
+  onMouseLeave = () => emit('close')
+
   if (openerHover.value) {
-    menu.value.addEventListener('mouseleave', () => emit('close'))
+    menu.value.addEventListener('mouseleave', onMouseLeave)
   }
 
   if (alwaysDisplayed.value && openerHover.value) {
-    menu.value.addEventListener('mouseenter', () => emit('open'))
-    menu.value.addEventListener('mouseleave', () => emit('close'))
+    onMouseEnter = () => emit('open')
+    menu.value.addEventListener('mouseenter', onMouseEnter)
+    menu.value.addEventListener('mouseleave', onMouseLeave)
+  }
+})
+
+onBeforeUnmount(() => {
+  document.querySelector('html')?.classList.remove('cm-always-displayed')
+
+  if (!menu.value) {
+    return
+  }
+
+  if (onMouseEnter !== null) {
+    menu.value.removeEventListener('mouseenter', onMouseEnter)
+  }
+
+  if (onMouseLeave !== null) {
+    menu.value.removeEventListener('mouseleave', onMouseLeave)
   }
 })
 </script>

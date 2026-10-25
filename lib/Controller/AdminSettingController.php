@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * @license GNU AGPL version 3 or any later version
  *
@@ -36,7 +38,7 @@ use OCP\IURLGenerator;
 class AdminSettingController extends Controller
 {
     public function __construct(
-        $appName,
+        string $appName,
         IRequest $request,
         protected IConfig $config,
         protected ConfigProxy $configProxy,
@@ -71,7 +73,7 @@ class AdminSettingController extends Controller
         ];
 
         foreach ($keys as $key) {
-            if (in_array($key, $excludedKeys)) {
+            if (in_array($key, $excludedKeys, true)) {
                 continue;
             }
 
@@ -194,11 +196,11 @@ class AdminSettingController extends Controller
                 continue;
             }
 
-            if (in_array($key, $booleans)) {
+            if (in_array($key, $booleans, true)) {
                 $config[$key] = $this->configProxy->getAppValueBool($key, $defaults[$key]);
-            } elseif (in_array($key, $arrays)) {
+            } elseif (in_array($key, $arrays, true)) {
                 $config[$key] = $this->configProxy->getAppValueArray($key, $defaults[$key]);
-            } elseif (in_array($key, $integers)) {
+            } elseif (in_array($key, $integers, true)) {
                 $config[$key] = $this->configProxy->getAppValueInt($key, $defaults[$key]);
             } else {
                 $config[$key] = $this->configProxy->getAppValue($key, $defaults[$key]);

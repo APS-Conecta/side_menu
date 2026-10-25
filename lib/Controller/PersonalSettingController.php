@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * @license GNU AGPL version 3 or any later version
  *
@@ -33,7 +35,7 @@ use OCP\IUserSession;
 class PersonalSettingController extends Controller
 {
     public function __construct(
-        $appName,
+        string $appName,
         IRequest $request,
         protected IConfig $config,
         protected ConfigProxy $configProxy,
@@ -45,15 +47,19 @@ class PersonalSettingController extends Controller
     #[NoCSRFRequired]
     #[NoAdminRequired]
     #[FrontpageRoute(verb: 'POST', url: '/user/valueSet')]
-    public function valueSet($name, $value): array
+    public function valueSet(string $name, string $value): array
     {
         $doSave = false;
         $user = $this->userSession->getUser();
 
+        if ($user === null) {
+            return [];
+        }
+
         if ('enabled' === $name) {
             $doSave = true;
 
-            if (!in_array($value, ['0', '1'])) {
+            if (!in_array($value, ['0', '1'], true)) {
                 $value = '1';
             }
         }
@@ -61,12 +67,12 @@ class PersonalSettingController extends Controller
         if ('target-blank-mode' === $name) {
             $doSave = true;
 
-            if (!in_array($value, ['1', '2'])) {
+            if (!in_array($value, ['1', '2'], true)) {
                 $value = '1';
             }
         }
 
-        if (in_array($name, ['target-blank-apps', 'top-menu-apps', 'top-side-menu-apps', 'apps-order'])) {
+        if (in_array($name, ['target-blank-apps', 'top-menu-apps', 'top-side-menu-apps', 'apps-order'], true)) {
             $doSave = true;
             $data = json_decode($value, true);
 
@@ -103,6 +109,11 @@ class PersonalSettingController extends Controller
     public function configuration(): JSONResponse
     {
         $user = $this->userSession->getUser();
+
+        if ($user === null) {
+            return new JSONResponse([]);
+        }
+
         $keys = $this->config->getUserKeys($user->getUid(), Application::APP_ID);
 
         $booleans = [
@@ -136,11 +147,11 @@ class PersonalSettingController extends Controller
                 continue;
             }
 
-            if (in_array($key, $booleans)) {
+            if (in_array($key, $booleans, true)) {
                 $config[$key] = $this->configProxy->getUserValueBool($user, $key, $defaults[$key]);
-            } elseif (in_array($key, $arrays)) {
+            } elseif (in_array($key, $arrays, true)) {
                 $config[$key] = $this->configProxy->getUserValueArray($user, $key, $defaults[$key]);
-            } elseif (in_array($key, $integers)) {
+            } elseif (in_array($key, $integers, true)) {
                 $config[$key] = $this->configProxy->getUserValueInt($user, $key, $defaults[$key]);
             } else {
                 $config[$key] = $this->configProxy->getUserValue($user, $key, $defaults[$key]);

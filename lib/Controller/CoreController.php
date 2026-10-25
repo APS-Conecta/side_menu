@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * @license GNU AGPL version 3 or any later version
  *
@@ -37,6 +39,7 @@ class CoreController extends Controller
         IRequest $request,
         protected ConfigProxy $config,
         protected AppRepository $appRepository,
+        protected IUserSession $userSession,
     ) {
         parent::__construct($appName, $request);
     }
@@ -47,7 +50,7 @@ class CoreController extends Controller
     #[FrontpageRoute(verb: 'GET', url: '/core/apps')]
     public function items(): JSONResponse
     {
-        $user = \OC::$server[IUserSession::class]->getUser();
+        $user = $this->userSession->getUser();
         $items = [];
 
         if (!$user) {
@@ -61,7 +64,7 @@ class CoreController extends Controller
 
         foreach ($apps as &$app) {
             foreach ($app as $key => $value) {
-                if (!in_array($key, $keys)) {
+                if (!in_array($key, $keys, true)) {
                     unset($app[$key]);
                 }
             }
