@@ -30,7 +30,7 @@ Notice
 Because I believe in a free and decentralized Internet, [Gitnet](https://gitnet.fr) is **self-hosted at home**.
 In case of downtime, you can download **Custom Menu** from [here](https://kim.deblan.fr/~side_menu/).
 ]]></description>
-    <version>6.0.1</version>
+    <version>6.0.2</version>
     <licence>agpl</licence>
     <author mail="contact@deblan.fr" homepage="https://www.deblan.fr/">Simon Vieille</author>
     <namespace>SideMenu</namespace>
